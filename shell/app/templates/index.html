@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamWork - Plataforma de Trabajo en Equipo</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="shell-header">
+        <div class="container">
+            <h1 class="logo">
+                <span class="material-icons">groups</span>
+                TeamWork
+            </h1>
+            <nav class="main-nav">
+                <div id="user-info"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="shell-container">
+        <aside class="sidebar">
+            <h2>Microfrontends</h2>
+            <nav class="microfrontend-nav">
+                <button class="nav-item" data-microfrontend="auth">
+                    <span class="material-icons">lock</span>
+                    <span>Autenticación</span>
+                </button>
+                <button class="nav-item" data-microfrontend="tasks">
+                    <span class="material-icons">assignment</span>
+                    <span>Tareas</span>
+                </button>
+                <button class="nav-item" data-microfrontend="chat">
+                    <span class="material-icons">chat</span>
+                    <span>Chat</span>
+                </button>
+                <button class="nav-item" data-microfrontend="docs">
+                    <span class="material-icons">description</span>
+                    <span>Documentos</span>
+                </button>
+            </nav>
+        </aside>
+
+        <section class="content-area">
+            <div id="microfrontend-container">
+                <div class="welcome-screen">
+                    <h2>Bienvenido a TeamWork</h2>
+                    <p>Plataforma de colaboración basada en microfrontends</p>
+                    <div class="microfrontend-grid">
+                        <div class="mf-card" data-mf="auth">
+                            <span class="material-icons">lock</span>
+                            <h3>Autenticación</h3>
+                            <p>Gestión de usuarios y autenticación</p>
+                        </div>
+                        <div class="mf-card" data-mf="tasks">
+                            <span class="material-icons">assignment</span>
+                            <h3>Tareas</h3>
+                            <p>Gestión de tareas y proyectos</p>
+                        </div>
+                        <div class="mf-card" data-mf="chat">
+                            <span class="material-icons">chat</span>
+                            <h3>Chat</h3>
+                            <p>Mensajería en tiempo real</p>
+                        </div>
+                        <div class="mf-card" data-mf="docs">
+                            <span class="material-icons">description</span>
+                            <h3>Documentos</h3>
+                            <p>Gestión de documentos compartidos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="shell-footer">
+        <p>&copy; 2025 TeamWork - Arquitectura de Microfrontends</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/shell.js') }}"></script>
+</body>
+</html>
