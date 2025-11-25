@@ -5,5 +5,5 @@ docker build -t tw-shell:latest .
 
 cd ..
 kubectl apply -f k8s/shell.yaml
-# ingress siempre debemos ejecutarlo, pues este es el puente entre los servicios internos del Cluster
+# ingress siempre debemos ejecutarlo, pues este es el puente entre los servicios internos del Cluster en Kubernetes
 kubectl apply -f k8s/ingress.yaml
