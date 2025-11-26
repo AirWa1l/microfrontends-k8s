@@ -1,18 +1,14 @@
-# Imagen base de Node
-FROM node:18
+FROM nginx:alpine
 
-# Directorio de trabajo dentro del contenedor
-WORKDIR /app
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copiamos el backend y el frontend
-COPY backend ./backend
-COPY frontend ./frontend
+# Templates → raíz del servidor
+COPY app/templates/index.html /usr/share/nginx/html/index.html
 
-# Instalamos dependencias solo del backend
-RUN npm install --prefix backend
+# Resto de archivos estáticos
+COPY app/style /usr/share/nginx/html/style/
+COPY app/app.js /usr/share/nginx/html/app.js
 
-# Puerto expuesto dentro del contenedor (coincide con tu server.js)
 EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 
-# Comando para ejecutar tu servicio
-CMD ["node", "backend/server.js"]
