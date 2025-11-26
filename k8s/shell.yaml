@@ -27,13 +27,13 @@ spec:
         - name: SECRET_KEY
           value: "change-this-in-production-k8s-secret"
         - name: AUTH_SERVICE_URL
-          value: "http://tw-auth-service:5000"
+          value: "http://tw-auth-service"
         - name: CHAT_SERVICE_URL
-          value: "http://tw-chat-service:5000"
+          value: "http://tw-chat-service"
         - name: DOCS_SERVICE_URL
-          value: "http://tw-docs-service:5000"
+          value: "http://tw-docs-service"
         - name: TASKS_SERVICE_URL
-          value: "http://tw-tasks-service:5000"
+          value: "http://tw-tasks-service"
         resources:
           requests:
             memory: "128Mi"
