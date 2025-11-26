@@ -10,11 +10,11 @@ RUN npm install --production
 COPY app/ .
 
 # Crear usuario no-root para seguridad
-RUN addgroup -g 1000 authuser && \
-    adduser -D -u 1000 -G authuser authuser && \
-    chown -R authuser:authuser /app
+# RUN addgroup -g 1000 authuser && \
+#    adduser -D -u 1000 -G authuser authuser && \
+#    chown -R authuser:authuser /app
 
-USER authuser
+# USER authuser
 
 EXPOSE 5000 81
 
