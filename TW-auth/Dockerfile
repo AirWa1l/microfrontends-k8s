@@ -1,14 +1,22 @@
-FROM nginx:alpine
+FROM node:18-alpine
 
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
 
-# Templates → raíz del servidor
-COPY app/templates/index.html /usr/share/nginx/html/index.html
+# Copiar package.json e instalar dependencias
+COPY app/package.json .
+RUN npm install --production
 
-# Resto de archivos estáticos
-COPY app/style /usr/share/nginx/html/style/
-COPY app/app.js /usr/share/nginx/html/app.js
+# Copiar toda la aplicación
+COPY app/ .
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Crear usuario no-root para seguridad
+RUN addgroup -g 1000 authuser && \
+    adduser -D -u 1000 -G authuser authuser && \
+    chown -R authuser:authuser /app
+
+USER authuser
+
+EXPOSE 5000 81
+
+CMD ["node", "server.js"]
 
