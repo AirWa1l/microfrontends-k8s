@@ -8,10 +8,12 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 
 # URLs de los microfrontends (configurables vía variables de entorno)
 MICROFRONTEND_URLS = {
-    'auth': os.environ.get('AUTH_SERVICE_URL', 'http://tw-auth-service:5000'),
-    'chat': os.environ.get('CHAT_SERVICE_URL', 'http://tw-chat-service:5000'),
-    'docs': os.environ.get('DOCS_SERVICE_URL', 'http://tw-docs-service:5000'),
-    'tasks': os.environ.get('TASKS_SERVICE_URL', 'http://tw-tasks-service:5000')
+    # En cluster Kubernetes el Service expone en el puerto 80 (service name resolución DNS).
+    # Para desarrollo local puede sobreescribirse con e.g. AUTH_SERVICE_URL="http://localhost:8081"
+    'auth': os.environ.get('AUTH_SERVICE_URL', 'http://tw-auth-service'),
+    'chat': os.environ.get('CHAT_SERVICE_URL', 'http://tw-chat-service'),
+    'docs': os.environ.get('DOCS_SERVICE_URL', 'http://tw-docs-service'),
+    'tasks': os.environ.get('TASKS_SERVICE_URL', 'http://tw-tasks-service')
 }
 
 @app.route('/')
@@ -26,50 +28,60 @@ def health():
 @app.route('/api/microfrontends')
 def get_microfrontends():
     # API para configuración de los microfrontends
+    # Devolvemos URLs relativas que apuntan al proxy de la shell para evitar
+    # problemas de resolución DNS/CORS desde el navegador.
     microfrontends_config = {
         'auth': {
             'name': 'Autenticación',
-            'url': MICROFRONTEND_URLS['auth'],
+            'url': f"/api/proxy/auth",
             'description': 'Gestión de usuarios y autenticación'
         },
         'chat': {
             'name': 'Chat',
-            'url': MICROFRONTEND_URLS['chat'],
+            'url': f"/api/proxy/chat",
             'description': 'Sistema de chat en tiempo real'
         },
         'docs': {
             'name': 'Documentos',
-            'url': MICROFRONTEND_URLS['docs'],
+            'url': f"/api/proxy/docs",
             'description': 'Gestión de documentos compartidos'
         },
         'tasks': {
             'name': 'Tareas',
-            'url': MICROFRONTEND_URLS['tasks'],
+            'url': f"/api/proxy/tasks",
             'description': 'Gestión de tareas y proyectos'
         }
     }
     return jsonify(microfrontends_config)
 
+@app.route('/api/proxy/<service>/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE'])
 @app.route('/api/proxy/<service>/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def proxy_to_microfrontend(service, path):
-    # Aquí se hace la conexión de los microfrontends a través del proxy
+    # Proxy general para microfrontends. Soporta la ruta raíz y sub-rutas.
     if service not in MICROFRONTEND_URLS:
         return jsonify({'error': 'Servicio no encontrado'}), 404
-    
-    target_url = f"{MICROFRONTEND_URLS[service]}/{path}"
-    
+
+    base = MICROFRONTEND_URLS[service]
+    if path:
+        target_url = f"{base}/{path}"
+    else:
+        target_url = f"{base}/"
+
     try:
         # Reenviar la petición al microfrontend correspondiente
         if request.method == 'GET':
-            response = requests.get(target_url, params=request.args, timeout=5)
+            response = requests.get(target_url, params=request.args, timeout=10)
         elif request.method == 'POST':
-            response = requests.post(target_url, json=request.get_json(), timeout=5)
+            response = requests.post(target_url, json=request.get_json(), timeout=10)
         elif request.method == 'PUT':
-            response = requests.put(target_url, json=request.get_json(), timeout=5)
+            response = requests.put(target_url, json=request.get_json(), timeout=10)
         elif request.method == 'DELETE':
-            response = requests.delete(target_url, timeout=5)
-        
-        return response.content, response.status_code, response.headers.items()
+            response = requests.delete(target_url, timeout=10)
+
+        # Pasar contenido y estatus. Filtrar headers problemáticos si es necesario.
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in response.headers.items() if name.lower() not in excluded_headers]
+        return response.content, response.status_code, headers
     except requests.exceptions.RequestException as e:
         return jsonify({'error': f'Error al comunicarse con {service}', 'detail': str(e)}), 503
 
