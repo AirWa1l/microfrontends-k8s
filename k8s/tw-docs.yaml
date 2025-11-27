@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tw-docs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tw-docs
+  template:
+    metadata:
+      labels:
+        app: tw-docs
+    spec:
+      containers:
+      - name: tw-docs
+        image: tw-docs:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        - containerPort: 83
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tw-docs
+spec:
+  selector:
+    app: tw-docs
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: ClusterIP
