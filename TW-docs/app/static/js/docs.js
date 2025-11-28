@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!title) return;
         
         try {
-            const res = await fetch('/document/create', {
+            // CAMBIO: ruta relativa sin slash inicial
+            const res = await fetch('document/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ title })
@@ -28,8 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(res.ok) {
                 const data = await res.json();
                 loadDocuments();
-                // Opcional: abrir el documento creado inmediatamente
-                // openDocument(data.id); 
             } else {
                 alert("Error al crear documento");
             }
@@ -46,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn.disabled = true;
         
         try {
-            const res = await fetch(`/document/${currentDocId}/update`, {
+            // CAMBIO: ruta relativa sin slash inicial
+            const res = await fetch(`document/${currentDocId}/update`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ 
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok) {
                 statusBar.textContent = "Guardado exitosamente";
-                loadDocuments(); // Actualizar lista por si cambió el título
+                loadDocuments();
             } else {
                 statusBar.textContent = "Error al guardar";
             }
@@ -73,7 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Función para cargar la lista de documentos
     async function loadDocuments() {
         try {
-            const res = await fetch('/document/list');
+            // CAMBIO: ruta relativa sin slash inicial
+            const res = await fetch('document/list');
             if (!res.ok) throw new Error("Error cargando lista");
             const docs = await res.json();
             renderList(docs);
@@ -106,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         statusBar.textContent = "Cargando...";
         
         try {
-            const res = await fetch(`/document/${id}`);
+            // CAMBIO: ruta relativa sin slash inicial
+            const res = await fetch(`document/${id}`);
             if (!res.ok) throw new Error("Error cargando documento");
             
             const data = await res.json();
@@ -118,8 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editorView.classList.remove('hidden');
             statusBar.textContent = "Listo";
             
-            // Actualizar clase active en la lista
-            loadDocuments(); 
+            loadDocuments();
         } catch (e) {
             console.error(e);
             alert("Error al abrir el documento");

@@ -1,12 +1,17 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_from_directory
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import uuid
+import os
 
 app = Flask(__name__)
 
 # Simulación de base de datos en memoria
 documents = {}
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
 
 @app.route('/')
 def index():
