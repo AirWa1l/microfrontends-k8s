@@ -1,20 +1,21 @@
-FROM python:3.11-slim
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Dependencias de Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copiar manifiestos de dependencias primero para aprovechar la cache de capas
+COPY app/package*.json ./
+RUN npm install --production
 
-# Copiar aplicación
-COPY app/ /app/
+# Copiar el resto de la aplicación
+COPY app/ ./
 
-# Usuario no-root
-RUN useradd -m -u 1001 chatuser && chown -R chatuser:chatuser /app
+# Crear usuario no-root
+RUN adduser -D -u 1001 chatuser && chown -R chatuser:chatuser /app
 USER chatuser
 
+ENV PORT=8082
 EXPOSE 8082
 
-# Ejecutar con gunicorn usando eventlet para websockets
-CMD ["python", "app.py"]
+# Ejecutar servidor Node (Socket.IO)
+CMD ["node", "server.js"]
 

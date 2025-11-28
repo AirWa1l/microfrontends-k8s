@@ -120,7 +120,15 @@ class MicrofrontendShell {
     }
 
     renderMicrofrontend(name, html, config) {
-        // En una implementación real con iframes
+        // Ajuste: para el microfrontend de chat en desarrollo local (shell en 8080 y chat en 8082)
+        // usamos acceso directo al puerto 8082 para permitir WebSockets, evitando el proxy Flask.
+        let iframeSrc = config.url;
+        if (name === 'chat') {
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocal) {
+                iframeSrc = `http://${window.location.hostname}:8082/`;
+            }
+        }
         this.container.innerHTML = `
             <div class="microfrontend-wrapper">
                 <div class="microfrontend-header">
@@ -134,9 +142,9 @@ class MicrofrontendShell {
                     </button>
                 </div>
                 <div class="microfrontend-content">
-                    <iframe 
-                        src="${config.url}" 
-                        frameborder="0" 
+                    <iframe
+                        src="${iframeSrc}"
+                        frameborder="0"
                         style="width: 100%; height: 600px; border: none;"
                         title="${config.name}">
                     </iframe>

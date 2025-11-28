@@ -6,7 +6,6 @@ const { Server } = require('socket.io');
 
 const app = express();
 const PORT = process.env.PORT || 5002;
-const HEALTH_PORT = 81;
 
 // Middleware
 app.use(bodyParser.json());
@@ -21,18 +20,14 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'templates', 'index.html'));
 });
 
-// Health check on separate port
-const healthApp = express();
-healthApp.get('/health', (req, res) => {
+// Health check on main app port (used by k8s probes)
+app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     service: 'tw-chat',
+    port: PORT,
     timestamp: new Date().toISOString()
   });
-});
-
-healthApp.listen(HEALTH_PORT, () => {
-  console.log(`[CHAT] Health check listening on port ${HEALTH_PORT}`);
 });
 
 // HTTP server + Socket.IO

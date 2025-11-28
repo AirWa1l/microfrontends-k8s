@@ -1,59 +1,35 @@
-(function(){
-  const socket = io({ autoConnect: false });
+(() => {
+  const EMBEDDED = (() => { try { return window.top !== window; } catch(e){ return true; } })();
+  // Conexión: si está embebido (shell 8080) usar puerto real 8082 para WebSockets.
+  const socket = EMBEDDED ? io(`http://${location.hostname}:8082`, { autoConnect: false }) : io({ autoConnect: true });
   console.log('[CHAT] Script loaded');
-  // Use sessionStorage so each tab can have a different username
-  let username = sessionStorage.getItem('tw_username') || '';
-  const EMBEDDED = (function(){ try { return window.top !== window; } catch(e){ return true; } })();
 
+  let username = sessionStorage.getItem('tw_username') || '';
   const modal = document.getElementById('username-modal');
   const usernameForm = document.getElementById('username-form');
   const usernameInput = document.getElementById('username-input');
   const changeBtn = document.getElementById('change-name');
+  const messagesEl = document.getElementById('messages');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('msg');
 
   function openModal(){
     modal.classList.remove('hidden');
     usernameInput.focus();
   }
+  function closeModal(){ modal.classList.add('hidden'); }
 
-  function closeModal(){
-    modal.classList.add('hidden');
+  function escapeHtml(str){
+    return String(str).replace(/[&<>\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
   }
-
-  function initJoinFlow(){
-    // In iframe (shell @8080), always ask for a fresh name to avoid shared session surprises
-    if (EMBEDDED) {
-      sessionStorage.removeItem('tw_username');
-      username = '';
-    }
-    if (username) {
-      socket.connect();
-      socket.emit('join', username);
-      console.log('[CHAT] Join with stored username:', username);
-    } else {
-      openModal();
-    }
-    // Fallback: if not connected within 2s, ensure modal is visible
-    setTimeout(function(){
-      if (!socket.connected) {
-        console.warn('[CHAT] Not connected yet, forcing modal');
-        openModal();
-      }
-    }, 2000);
-  }
-
-  const messagesEl = document.getElementById('messages');
-  const form = document.getElementById('chat-form');
-  const input = document.getElementById('msg');
-
   function addMessage({ user, text, time }){
     const el = document.createElement('div');
     el.className = 'message';
     const when = new Date(time || Date.now());
-    el.innerHTML = `<strong>${user}:</strong> ${escapeHtml(text)} <span class="time">${when.toLocaleTimeString()}</span>`;
+    el.innerHTML = `<strong>${escapeHtml(user)}:</strong> ${escapeHtml(text)} <span class="time">${when.toLocaleTimeString()}</span>`;
     messagesEl.appendChild(el);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
-
   function addSystem(text){
     const el = document.createElement('div');
     el.className = 'system';
@@ -62,39 +38,33 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"] /g, function(s){
-      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-      return map[s] || s;
-    });
+  function initJoinFlow(){
+    if (EMBEDDED) { sessionStorage.removeItem('tw_username'); username = ''; }
+    if (username) {
+      socket.connect();
+      socket.emit('join', username);
+      console.log('[CHAT] Auto-join stored username:', username);
+    } else { openModal(); }
   }
 
-  socket.on('connect', function(){
-    console.log('[CHAT] Connected, id=', socket.id);
-    // if name not stored yet we wait for form submit
-    if (username) {
-      socket.emit('join', username);
-      console.log('[CHAT] Join re-sent on connect:', username);
-    }
+  socket.on('connect', () => {
+    console.log('[CHAT] Connected id=', socket.id);
+    if (username) socket.emit('join', username);
   });
-  socket.on('connect_error', function(err){
-    console.error('[CHAT] connect_error:', err);
-  });
-  socket.on('error', function(err){
-    console.error('[CHAT] error:', err);
-  });
-  socket.on('chat_message', addMessage);
+  socket.on('connect_error', err => console.error('[CHAT] connect_error:', err));
+  socket.on('error', err => console.error('[CHAT] error:', err));
+  socket.on('message', addMessage);
   socket.on('system', addSystem);
 
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', e => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
-    socket.emit('chat_message', text);
+    if (!socket.connected) { try { socket.connect(); } catch(err){ console.error('[CHAT] connect on send', err); } }
+    socket.emit('message', text);
     input.value = '';
   });
-
-  usernameForm.addEventListener('submit', function(e){
+  usernameForm.addEventListener('submit', e => {
     e.preventDefault();
     const value = usernameInput.value.trim();
     username = value || '';
@@ -102,26 +72,9 @@
     closeModal();
     socket.connect();
     socket.emit('join', username);
-    console.log('[CHAT] Join after modal submit:', username);
+    console.log('[CHAT] Join with new username:', username);
   });
+  if (changeBtn) changeBtn.addEventListener('click', () => { sessionStorage.removeItem('tw_username'); username=''; openModal(); });
 
-  if (changeBtn) {
-    changeBtn.addEventListener('click', function(){
-      // Clear session username and show modal
-      sessionStorage.removeItem('tw_username');
-      username = '';
-      openModal();
-    });
-  }
-
-  // Sanitization fix: improved regex (remove space from class)
-  function escapeHtml(str){
-    return String(str).replace(/[&<>\"]/g, function(s){
-      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-      return map[s] || s;
-    });
-  }
-
-  // Always ask on first load of a tab
   initJoinFlow();
 })();
