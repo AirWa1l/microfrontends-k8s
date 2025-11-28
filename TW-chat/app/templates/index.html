@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TW Chat</title>
-  <link rel="stylesheet" href="/style/css/style.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="style/css/style.css">
 </head>
 <body>
   <div class="chat-container">
-    <header>
-      <h1>TeamWork - Chat</h1>
+    <header class="chat-header">
+      <h2>TeamWork - Chat</h2>
+      <button id="change-name" class="btn-secondary" title="Cambiar nombre">Cambiar nombre</button>
     </header>
 
     <section id="messages" class="messages"></section>
@@ -22,7 +24,7 @@
 
   <div id="username-modal" class="username-modal hidden">
     <div class="username-modal-content">
-      <h2>Ingresa tu nombre</h2>
+      <h3>Ingresa tu nombre</h3>
       <form id="username-form">
         <input id="username-input" type="text" placeholder="Tu nombre" autocomplete="off" />
         <button type="submit">Continuar</button>

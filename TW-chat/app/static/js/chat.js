@@ -3,10 +3,12 @@
   console.log('[CHAT] Script loaded');
   // Use sessionStorage so each tab can have a different username
   let username = sessionStorage.getItem('tw_username') || '';
+  const EMBEDDED = (function(){ try { return window.top !== window; } catch(e){ return true; } })();
 
   const modal = document.getElementById('username-modal');
   const usernameForm = document.getElementById('username-form');
   const usernameInput = document.getElementById('username-input');
+  const changeBtn = document.getElementById('change-name');
 
   function openModal(){
     modal.classList.remove('hidden');
@@ -18,12 +20,25 @@
   }
 
   function initJoinFlow(){
+    // In iframe (shell @8080), always ask for a fresh name to avoid shared session surprises
+    if (EMBEDDED) {
+      sessionStorage.removeItem('tw_username');
+      username = '';
+    }
     if (username) {
       socket.connect();
       socket.emit('join', username);
+      console.log('[CHAT] Join with stored username:', username);
     } else {
       openModal();
     }
+    // Fallback: if not connected within 2s, ensure modal is visible
+    setTimeout(function(){
+      if (!socket.connected) {
+        console.warn('[CHAT] Not connected yet, forcing modal');
+        openModal();
+      }
+    }, 2000);
   }
 
   const messagesEl = document.getElementById('messages');
@@ -59,6 +74,7 @@
     // if name not stored yet we wait for form submit
     if (username) {
       socket.emit('join', username);
+      console.log('[CHAT] Join re-sent on connect:', username);
     }
   });
   socket.on('connect_error', function(err){
@@ -85,7 +101,18 @@
     sessionStorage.setItem('tw_username', username);
     closeModal();
     socket.connect();
+    socket.emit('join', username);
+    console.log('[CHAT] Join after modal submit:', username);
   });
+
+  if (changeBtn) {
+    changeBtn.addEventListener('click', function(){
+      // Clear session username and show modal
+      sessionStorage.removeItem('tw_username');
+      username = '';
+      openModal();
+    });
+  }
 
   // Sanitization fix: improved regex (remove space from class)
   function escapeHtml(str){

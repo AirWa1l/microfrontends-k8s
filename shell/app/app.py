@@ -30,26 +30,33 @@ def get_microfrontends():
     # API para configuración de los microfrontends
     # Devolvemos URLs relativas que apuntan al proxy de la shell para evitar
     # problemas de resolución DNS/CORS desde el navegador.
+    # Para microfrontends con WebSockets (como chat), usamos rutas de Ingress directamente
+    # para que el navegador pueda hacer upgrade de conexión. El proxy HTTP simple no
+    # maneja correctamente los upgrades de WebSocket.
     microfrontends_config = {
         'auth': {
             'name': 'Autenticación',
-            'url': f"/api/proxy/auth",
-            'description': 'Gestión de usuarios y autenticación'
+            'url': f"/auth",
+            'description': 'Gestión de usuarios y autenticación',
+            'icon': 'lock'
         },
         'chat': {
             'name': 'Chat',
-            'url': f"/api/proxy/chat",
-            'description': 'Sistema de chat en tiempo real'
+            'url': f"/chat",
+            'description': 'Sistema de chat en tiempo real',
+            'icon': 'chat'
         },
         'docs': {
             'name': 'Documentos',
-            'url': f"/api/proxy/docs",
-            'description': 'Gestión de documentos compartidos'
+            'url': f"/docs",
+            'description': 'Gestión de documentos compartidos',
+            'icon': 'description'
         },
         'tasks': {
             'name': 'Tareas',
-            'url': f"/api/proxy/tasks",
-            'description': 'Gestión de tareas y proyectos'
+            'url': f"/tasks",
+            'description': 'Gestión de tareas y proyectos',
+            'icon': 'assignment'
         }
     }
     return jsonify(microfrontends_config)
