@@ -30,29 +30,74 @@ def get_microfrontends():
     # API para configuración de los microfrontends
     # Devolvemos URLs relativas que apuntan al proxy de la shell para evitar
     # problemas de resolución DNS/CORS desde el navegador.
+    # Para microfrontends con WebSockets (como chat), usamos rutas de Ingress directamente
+    # para que el navegador pueda hacer upgrade de conexión. El proxy HTTP simple no
+    # maneja correctamente los upgrades de WebSocket.
     microfrontends_config = {
         'auth': {
             'name': 'Autenticación',
-            'url': f"/api/proxy/auth",
-            'description': 'Gestión de usuarios y autenticación'
+            'url': f"/auth",
+            'description': 'Gestión de usuarios y autenticación',
+            'icon': 'lock'
         },
         'chat': {
             'name': 'Chat',
-            'url': f"/api/proxy/chat",
-            'description': 'Sistema de chat en tiempo real'
+            'url': f"/chat",
+            'description': 'Sistema de chat en tiempo real',
+            'icon': 'chat'
         },
         'docs': {
             'name': 'Documentos',
-            'url': f"/api/proxy/docs",
-            'description': 'Gestión de documentos compartidos'
+            'url': f"/docs",
+            'description': 'Gestión de documentos compartidos',
+            'icon': 'description'
         },
         'tasks': {
             'name': 'Tareas',
-            'url': f"/api/proxy/tasks",
-            'description': 'Gestión de tareas y proyectos'
+            'url': f"/tasks",
+            'description': 'Gestión de tareas y proyectos',
+            'icon': 'assignment'
         }
     }
     return jsonify(microfrontends_config)
+
+# Proxy de rutas visibles desde el navegador para que se sirvan en 8080
+# Esto permite acceder a /auth, /chat, /docs, /tasks sin depender del Ingress.
+@app.route('/<service>/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+@app.route('/<service>/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+def browser_visible_routes(service, path):
+    if service not in MICROFRONTEND_URLS:
+        return render_template('404.html'), 404
+
+    base = MICROFRONTEND_URLS[service]
+    target_url = f"{base}/" if not path else f"{base}/{path}"
+
+    try:
+        method = request.method
+        headers = {k: v for k, v in request.headers.items()}
+        # Remove hop-by-hop headers
+        for h in ['Host', 'Content-Length', 'Connection', 'Keep-Alive', 'Proxy-Authenticate', 'Proxy-Authorization', 'TE', 'Trailers', 'Transfer-Encoding', 'Upgrade']:
+            headers.pop(h, None)
+
+        if method == 'GET':
+            response = requests.get(target_url, params=request.args, headers=headers, timeout=10)
+        elif method == 'POST':
+            data = request.get_data()
+            response = requests.post(target_url, params=request.args, headers=headers, data=data, timeout=15)
+        elif method == 'PUT':
+            data = request.get_data()
+            response = requests.put(target_url, params=request.args, headers=headers, data=data, timeout=15)
+        elif method == 'DELETE':
+            response = requests.delete(target_url, params=request.args, headers=headers, timeout=10)
+        elif method == 'PATCH':
+            data = request.get_data()
+            response = requests.patch(target_url, params=request.args, headers=headers, data=data, timeout=15)
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in response.headers.items() if name.lower() not in excluded_headers]
+        return response.content, response.status_code, headers
+    except requests.exceptions.RequestException:
+        # Servicio inaccesible: devolver 404 para distinguir de errores internos reales
+        return render_template('404.html'), 404
 
 @app.route('/api/proxy/<service>/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE'])
 @app.route('/api/proxy/<service>/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
