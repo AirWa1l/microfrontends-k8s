@@ -25,14 +25,12 @@ body {
     min-height: 100vh;
 }
 
-/* Container */
 .tasks-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
 }
 
-/* Header */
 .tasks-header {
     background: white;
     padding: 2rem;
@@ -84,7 +82,6 @@ body {
     box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
-/* Stats */
 .stats-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -129,7 +126,6 @@ body {
     color: #666;
 }
 
-/* Filters */
 .filters-section {
     background: white;
     padding: 1.5rem;
@@ -165,7 +161,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Tasks List */
 .tasks-list {
     display: flex;
     flex-direction: column;
@@ -317,7 +312,6 @@ body {
     background: var(--error-color);
 }
 
-/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -473,7 +467,6 @@ body {
     background: #1976D2;
 }
 
-/* Loading & Empty */
 .loading,
 .empty-state {
     text-align: center;

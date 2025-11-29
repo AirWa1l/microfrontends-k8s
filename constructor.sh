@@ -29,8 +29,11 @@ kubectl apply -f k8s/tw-tasks.yaml
 kubectl apply -f k8s/ingress.yaml
 
 # Exponer servicios
-kubectl port-forward service/tw-shell-service 8080:80 &
-kubectl port-forward service/tw-auth-service 8081:80 &
-kubectl port-forward service/tw-chat-service 8082:80 &
-kubectl port-forward service/tw-docs-service 8083:80 &
+kubectl port-forward service/tw-shell-service 8080:80 
+kubectl port-forward service/tw-auth-service 8081:80 
+kubectl port-forward service/tw-chat-service 8082:80 
+kubectl port-forward service/tw-docs-service 8083:80 
 kubectl port-forward service/tw-tasks-service 8084:80
+
+# En caso de:
+# kubectl delete pod -l app=tw-...

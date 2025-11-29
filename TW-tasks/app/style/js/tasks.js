@@ -60,7 +60,7 @@ async function loadTasks() {
         if (status !== 'all') params.append('status', status);
         if (priority !== 'all') params.append('priority', priority);
 
-        const response = await fetch(`/api/tasks?${params}`);
+        const response = await fetch(`/tasks/api/tasks?${params}`);
         const data = await response.json();
 
         tasks = data.tasks;
@@ -127,7 +127,7 @@ function renderTasks() {
 // Cargar estadísticas
 async function loadStats() {
     try {
-        const response = await fetch('/api/stats');
+        const response = await fetch('/tasks/api/stats');
         const data = await response.json();
         
         document.getElementById('totalTasks').textContent = data.stats.total;
@@ -178,14 +178,14 @@ async function handleSubmit(e) {
         
         if (editingTaskId) {
             // Actualizar tarea existente
-            response = await fetch(`/api/tasks/${editingTaskId}`, {
+            response = await fetch(`/tasks/api/tasks/${editingTaskId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(taskData)
             });
         } else {
             // Crear nueva tarea
-            response = await fetch('/api/tasks', {
+            response = await fetch('/tasks/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(taskData)
@@ -230,7 +230,7 @@ async function deleteTask(taskId) {
     }
 
     try {
-        const response = await fetch(`/api/tasks/${taskId}`, {
+        const response = await fetch(`/tasks/api/tasks/${taskId}`, {
             method: 'DELETE'
         });
 

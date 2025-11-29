@@ -15,11 +15,7 @@ app.use('/style', express.static(path.join(__dirname, 'style')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Almacenamiento en memoria de tareas (se reinicia al reiniciar el contenedor)
-let tasks = [
-    { id: 1, title: 'Implementar autenticación', description: 'Crear sistema de login', status: 'completed', priority: 'high', created: new Date('2025-11-20').toISOString() },
-    { id: 2, title: 'Diseñar interfaz de chat', description: 'Mockups y wireframes', status: 'in-progress', priority: 'medium', created: new Date('2025-11-22').toISOString() },
-    { id: 3, title: 'Configurar Kubernetes', description: 'Setup de deployments', status: 'pending', priority: 'high', created: new Date('2025-11-25').toISOString() }
-];
+let tasks = [];
 let nextId = 4;
 
 // Ruta principal
